@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atom animation</title>
+  <script src="./index.js" defer></script>
+
+  <script id="frag" type="x-shader/x-fragment">
+
+#define M_PI 3.1415926535897932384626433832795
+
+precision mediump float;
+
+uniform float u_time;
+
+varying vec4 v_pos;
+
+float arc(vec2 pos, float angle_offset) {
+  float val = smoothstep(0.01, 0.0, abs(sqrt(
+    (pos.x * pos.x) / 1.0 + 
+    (pos.y * pos.y) / 6.0
+  ) - 0.3));
+  
+  float angle = atan(pos.x, pos.y) + angle_offset;
+
+  float offset = u_time / 250.0;
+
+  val *= (
+    atan(cos(angle + offset), sin(angle + offset)) + M_PI / 2.0
+  ) / M_PI;
+
+  return clamp(val, 0.0, 1.0);
+}
+
+mat2 rotated(float angle) {
+  return mat2(
+    cos(angle), -sin(angle),
+    sin(angle), cos(angle)
+  );
+}
+
+void main() {
+  float rot = 1.0;
+
+  vec3 base_color = vec3(0.1, 1.0, 0.3);
+
+  vec3 col = vec3(0.0, 0.0, 0.0);
+
+  col += base_color * arc(v_pos.xy * rotated(M_PI / 2.0), M_PI * 1.5);
+  col += base_color * arc(v_pos.xy * rotated(M_PI / 1.3), 0.0);
+  col += base_color * arc(v_pos.xy * rotated(M_PI / -1.3), 0.0);
+  col += base_color * arc(v_pos.xy, 0.0);
+
+  gl_FragColor = vec4(col, 1);
+}
+
+  </script>
+
+  <script id="vert" type="x-shader/x-vertex">
+
+attribute vec4 a_position;
+
+varying vec4 v_pos;
+ 
+void main() {
+  gl_Position = a_position;
+  v_pos = a_position;
+}
+
+  </script>
+</head>
+<body>
+  <canvas id="canvas" width=512 height=512></canvas>
+</body>
+</html>
